@@ -74,13 +74,13 @@ stage('K8s Deployment') {
                     echo "Phase 4: Deploying Application to Kubernetes"
                     echo "==============================================="
                     
-                    // 1. เตรียมไฟล์ Kubeconfig ภายใน workspace เพื่อให้คอนเทนเนอร์ kubectl มองเห็น
+                    // 1. ดึง Kubeconfig จากโฟลเดอร์หลักของ Jenkins มาเตรียมไว้ใน Workspace ปัจจุบัน
                     sh 'mkdir -p .kube'
                     sh 'cp /root/.kube/config .kube/config'
                     
-                    // 2. ใช้ Docker สั่งรัน kubectl บนชั้นเน็ตเวิร์กของโฮสต์โดยตรง ทะลวงผ่านทุก Firewall
-                    sh 'docker run --rm --network host -v ${WORKSPACE}/.kube/config://.kube/config -v ${WORKSPACE}:/work -w /work --env KUBECONFIG=//.kube/config bitnami/kubectl:latest apply -f k8s/deployment.yaml --validate=false --insecure-skip-tls-verify=true'
-                    sh 'docker run --rm --network host -v ${WORKSPACE}/.kube/config://.kube/config -v ${WORKSPACE}:/work -w /work --env KUBECONFIG=//.kube/config bitnami/kubectl:latest apply -f k8s/service.yaml --validate=false --insecure-skip-tls-verify=true'
+                    // 2. ใช้ Docker ปลุกคอนเทนเนอร์ kubectl ขึ้นมารันแบบ --network host เพื่อทะลวงผ่าน Network ของ Windows เข้า Cluster โดยตรง
+                    sh 'docker run --rm --network host -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/deployment.yaml --validate=false --insecure-skip-tls-verify=true'
+                    sh 'docker run --rm --network host -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/service.yaml --validate=false --insecure-skip-tls-verify=true'
                 }
             }
         }
