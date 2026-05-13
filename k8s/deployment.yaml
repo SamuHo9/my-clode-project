@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: note-api-deployment
+  labels:
+    app: note-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: note-api
+  template:
+    metadata:
+      labels:
+        app: note-api
+    spec:
+      containers:
+      - name: note-api
+        # ระบุอิมเมจจาก Docker Hub ของคุณ
+        image: sam007gitanddocker/my-cloud-project:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
