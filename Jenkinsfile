@@ -68,17 +68,9 @@ pipeline {
                     sh "sed -i 's|server: https://127.0.0.1:[0-9]*|server: https://host.docker.internal:6443|g' .kube/config"
 
                     // Deploy ผ่าน bitnami/kubectl container (--network host ไม่ได้ผลบน Windows)
-                    sh 'docker run --rm \
-                        -v ${WORKSPACE}/.kube/config:/root/.kube/config \
-                        -v ${WORKSPACE}:/work -w /work \
-                        bitnami/kubectl:latest apply -f k8s/deployment.yaml \
-                        --validate=false --insecure-skip-tls-verify=true'
+                    sh "docker run --rm -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/deployment.yaml --validate=false --insecure-skip-tls-verify=true"
 
-                    sh 'docker run --rm \
-                        -v ${WORKSPACE}/.kube/config:/root/.kube/config \
-                        -v ${WORKSPACE}:/work -w /work \
-                        bitnami/kubectl:latest apply -f k8s/service.yaml \
-                        --validate=false --insecure-skip-tls-verify=true'
+                    sh "docker run --rm -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/service.yaml --validate=false --insecure-skip-tls-verify=true"
                 }
             }
         }
