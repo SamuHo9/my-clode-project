@@ -46,3 +46,13 @@ docker run -d -p 5000:5000 --name note-container my-clode-project
 3. **Push** - อัปโหลด Image ขึ้น Docker Hub
 4. **Provision** - สร้าง/อัปเดต Infrastructure ด้วย Terraform
 5. **Deploy** - Deploy Application ลง Kubernetes Cluster ด้วย Ansible
+
+### 3. การรัน Jenkins
+
+รหัส Jenkins initialAdminPassword
+72e9154504f34794b39a42a2f649da96
+
+รัน docker jenkins อันนี้ไฟล์ yml
+docker-compose up -d 
+
+
