@@ -60,17 +60,10 @@ pipeline {
                     echo "Phase 4: Deploying Application to Kubernetes"
                     echo "==============================================="
 
-                    // คัดลอก kubeconfig จาก Jenkins home มาที่ workspace
-                    sh 'mkdir -p .kube'
-                    sh 'cp /root/.kube/config .kube/config'
-
-                    // แก้ server URL ให้ชี้ไป host.docker.internal:6443 (Docker Desktop K8s)
-                    sh "sed -i 's|server: https://127.0.0.1:[0-9]*|server: https://host.docker.internal:6443|g' .kube/config"
-
-                    // Deploy ผ่าน bitnami/kubectl container (--network host ไม่ได้ผลบน Windows)
-                    sh "docker run --rm -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/deployment.yaml --validate=false --insecure-skip-tls-verify=true"
-
-                    sh "docker run --rm -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/service.yaml --validate=false --insecure-skip-tls-verify=true"
+                    // ใช้ kubectl ที่ติดตั้งใน Jenkins โดยตรง (ไม่ผ่าน Docker-in-Docker)
+                    // kubeconfig ถูก copy ไว้ที่ /root/.kube/config แล้ว
+                    sh 'kubectl apply -f k8s/deployment.yaml --insecure-skip-tls-verify=true'
+                    sh 'kubectl apply -f k8s/service.yaml --insecure-skip-tls-verify=true'
                 }
             }
         }
