@@ -56,3 +56,14 @@ docker run -d -p 5000:5000 --name note-container my-clode-project
 docker-compose up -d 
 
 
+### 4. การรัน Docker Compose (Multi-container)
+สำหรับ Local Testing (รวม Jenkins + App + Monitoring)
+```bash
+docker-compose up -d
+```
+
+เข้าถึงแอปพลิเคชันได้ที่: http://localhost:5000
+เข้าถึง Jenkins ได้ที่: http://localhost:8080
+
+### 5.การใช้งาน Terraform และ Ansible ใน Jenkins Container
+

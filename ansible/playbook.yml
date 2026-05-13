@@ -1,0 +1,19 @@
+---
+- name: Configure Environment and Prepare Deployment Target
+  hosts: targets
+  gather_facts: false
+  tasks:
+    - name: Ensure target deployment directory exists
+      file:
+        path: /tmp/deployment_app
+        state: directory
+        mode: '0755'
+
+    - name: Copy provisioned config file to target
+      copy:
+        src: shared_env.txt
+        dest: /tmp/deployment_app/shared_env.txt
+
+    - name: Verify configuration success
+      debug:
+        msg: "Ansible successfully configured environment dependencies!"
