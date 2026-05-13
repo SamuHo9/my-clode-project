@@ -1,5 +1,5 @@
 pipeline {
-    agent any 
+    agent any
 
     environment {
         DOCKER_HUB = credentials('docker-hub-creds')
@@ -59,28 +59,37 @@ pipeline {
                     echo "==============================================="
                     echo "Phase 4: Deploying Application to Kubernetes"
                     echo "==============================================="
-                    // สั่งนำ Manifest ไฟล์ไปรันบน Cluster
-                    sh 'kubectl apply -f k8s/deployment.yaml'
-                    sh 'kubectl apply -f k8s/service.yaml'
+
+                    // คัดลอก kubeconfig จาก Jenkins home มาที่ workspace
+                    sh 'mkdir -p .kube'
+                    sh 'cp /root/.kube/config .kube/config'
+
+                    // แก้ server URL ให้ชี้ไป host.docker.internal:6443 (Docker Desktop K8s)
+                    sh "sed -i 's|server: https://127.0.0.1:[0-9]*|server: https://host.docker.internal:6443|g' .kube/config"
+
+                    // Deploy ผ่าน bitnami/kubectl container (--network host ไม่ได้ผลบน Windows)
+                    sh 'docker run --rm \
+                        -v ${WORKSPACE}/.kube/config:/root/.kube/config \
+                        -v ${WORKSPACE}:/work -w /work \
+                        bitnami/kubectl:latest apply -f k8s/deployment.yaml \
+                        --validate=false --insecure-skip-tls-verify=true'
+
+                    sh 'docker run --rm \
+                        -v ${WORKSPACE}/.kube/config:/root/.kube/config \
+                        -v ${WORKSPACE}:/work -w /work \
+                        bitnami/kubectl:latest apply -f k8s/service.yaml \
+                        --validate=false --insecure-skip-tls-verify=true'
                 }
             }
         }
     }
-}
-stage('K8s Deployment') {
-            steps {
-                script {
-                    echo "==============================================="
-                    echo "Phase 4: Deploying Application to Kubernetes"
-                    echo "==============================================="
-                    
-                    // 1. ดึง Kubeconfig จากโฟลเดอร์หลักของ Jenkins มาเตรียมไว้ใน Workspace ปัจจุบัน
-                    sh 'mkdir -p .kube'
-                    sh 'cp /root/.kube/config .kube/config'
-                    
-                    // 2. ใช้ Docker ปลุกคอนเทนเนอร์ kubectl ขึ้นมารันแบบ --network host เพื่อทะลวงผ่าน Network ของ Windows เข้า Cluster โดยตรง
-                    sh 'docker run --rm --network host -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/deployment.yaml --validate=false --insecure-skip-tls-verify=true'
-                    sh 'docker run --rm --network host -v ${WORKSPACE}/.kube/config:/root/.kube/config -v ${WORKSPACE}:/work -w /work bitnami/kubectl:latest apply -f k8s/service.yaml --validate=false --insecure-skip-tls-verify=true'
-                }
-            }
+
+    post {
+        success {
+            echo "Pipeline completed successfully!"
         }
+        failure {
+            echo "Pipeline failed. Check logs above."
+        }
+    }
+}
